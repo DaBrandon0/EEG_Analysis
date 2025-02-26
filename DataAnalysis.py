@@ -3,6 +3,7 @@ import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+
 #open formatted files containing 1 second of eeg data after stimuli
 with open('EEG1sec_CZ_err.pkl', 'rb') as file:
     EEG1sec_CZ_err = pickle.load(file)
@@ -43,8 +44,8 @@ for i in range(512):
     for j in range(len(EEG1sec_CZ_valid)):
         dist.append(EEG1sec_CZ_valid[j][i])
     dist_CZ_valid.append(dist)
-
-''' Histogram
+'''
+ #Histogram
 plt.hist(dist_FCZ_err[0], bins=50, alpha=0.5, label='List 1', color='blue')
 plt.hist(dist_FCZ_valid[0], bins=50, alpha=0.5, label='List 2', color='orange')
 plt.show()
@@ -80,7 +81,7 @@ plt.legend()
 #Grand average CZ plot
 plt.figure()
 plt.plot(x, CZ_valid_averages, label='valid', marker='o')
-plt.plot(x, EEG1sec_CZ_err[0], label='error', marker='s')
+plt.plot(x, CZ_err_averages, label='error', marker='s')
 plt.xlabel('X-axis')
 plt.ylabel('Y-axis')
 plt.title('CZ plot')
