@@ -6,7 +6,7 @@ import pickle
 from BaselineRemoval import BaselineRemoval
 # Load the .mat file
 
-mat_data = scipy.io.loadmat('preprocessed.mat', simplify_cells = True)['combined_export']
+mat_data = scipy.io.loadmat('Nathan_visual_1.mat', simplify_cells = True)['combined_export']
 EEG1sec_FCZ_err = []
 EEG1sec_CZ_err = []
 EEG1sec_FCZ_valid = []
@@ -17,6 +17,13 @@ startindex = mat_data['trigger_index'][0] #index of start of experiment
 endindex = mat_data['trigger_index'][-1]
 EEG_FCZ = EEG_FCZ[startindex:endindex] #select data between start and stop of experiment
 EEG_CZ = EEG_CZ[startindex:endindex]
+#Ttest plots
+x = list(range(len(EEG_FCZ)))
+plt.plot(x, EEG_FCZ, label='not removed', marker='s')
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.legend()
+plt.show()
 '''
 
 FCZ_base_obj = BaselineRemoval(EEG_FCZ) #
@@ -68,32 +75,29 @@ for i in start_indices:
     indices_start.append(mat_data['trigger_index'][i])
 for i in indices_start:
     #sorry
-    coeff_FCZ = np.polyfit(list(range(i - 1024 - startindex, i - startindex)), np.array(EEG_FCZ)[i-startindex-1024:i-startindex],1)
-    coeff_CZ = np.polyfit(list(range(i - 1024 - startindex, i - startindex)), np.array(EEG_CZ)[i-startindex-1024:i-startindex],1)
+    base_avg_FCZ = np.mean(np.array(EEG_FCZ)[i-startindex-103:i-startindex])
+    base_avg_CZ = np.mean(np.array(EEG_CZ)[i-startindex-103:i-startindex])
     to_scale_FCZ = np.array(EEG_FCZ)[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex]
     to_scale_CZ = np.array(EEG_CZ)[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex]
-    scalex = list(range(EEG_indices_all[indices_start.index(i)]-1-startindex, EEG_indices_all[indices_start.index(i)]+511-startindex))
-    scaleby_FCZ = [line_of_best_fit(x_val,coeff_FCZ[0],coeff_FCZ[1]) for x_val in scalex]
-    scaleby_CZ = [line_of_best_fit(x_val,coeff_CZ[0],coeff_CZ[1]) for x_val in scalex]
-    scaled_FCZ = [a - b for a, b in zip(to_scale_FCZ, scaleby_FCZ)]
-    scaled_CZ = [a - b for a, b in zip(to_scale_CZ, scaleby_CZ)]
-    np.array(EEG_FCZ)[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex] = scaled_FCZ
-    np.array(EEG_CZ)[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex] = scaled_CZ
+    scaled_FCZ = [x - base_avg_FCZ for x in to_scale_FCZ]
+    scaled_CZ = [x - base_avg_CZ for x in to_scale_CZ]
+    EEG_FCZ[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex] = scaled_FCZ
+    EEG_CZ[EEG_indices_all[indices_start.index(i)]-1-startindex:EEG_indices_all[indices_start.index(i)]+511-startindex] = scaled_CZ
 
 
 for i in EEG_indices_err:
     list_FCZ = np.array(EEG_FCZ)[i-1-startindex:i+511-startindex]
     list_CZ = np.array(EEG_CZ)[i-1-startindex:i+511-startindex]
-    if(min(list_CZ)> -100000 and max(list_CZ) < 100000):
+    if(min(list_CZ)> -100 and max(list_CZ) < 100):
         EEG1sec_CZ_err.append(list_CZ)
-    if(min(list_FCZ)> -100000 or max(list_FCZ) < 100000):
+    if(min(list_FCZ)> -100 or max(list_FCZ) < 100):
         EEG1sec_FCZ_err.append(list_FCZ)
 for i in EEG_indices_valid:
     list_FCZ = np.array(EEG_FCZ)[i-1-startindex:i+511-startindex]
     list_CZ = np.array(EEG_CZ)[i-1-startindex:i+511-startindex]
-    if(min(list_CZ)> -100000 and max(list_CZ) < 100000):
+    if(min(list_CZ)> -100 and max(list_CZ) < 100):
         EEG1sec_CZ_valid.append(list_CZ)
-    if(min(list_FCZ)> -100000 or max(list_FCZ) < 100000):
+    if(min(list_FCZ)> -100 or max(list_FCZ) < 100):
         EEG1sec_FCZ_valid.append(list_FCZ)
 
 with open('EEG1sec_CZ_err.pkl', 'wb') as file:
